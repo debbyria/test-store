@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, View, Text, Image, Dimensions, ImageBackground, TextInput, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { auth } from "../firebase"
+import { signInWithEmailAndPassword } from "firebase/auth";
 
 const windowWidth = Dimensions.get('window').width
 const windowHeight = Dimensions.get('window').height
@@ -9,6 +11,26 @@ export default function LoginScreen({ navigation }) {
 
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+
+  const handleLogin = () => {
+    signInWithEmailAndPassword(auth, email, password)
+      .then(userCredentials => {
+        const user = userCredentials.user
+        alert("Login Succeed")
+        navigation.navigate("Shop")
+      })
+      .catch(error => alert(error.message))
+  }
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged(user => {
+
+      if (user) {
+        navigation.navigate("Shop")
+      }
+    })
+    return unsubscribe
+  }, [])
 
   return (
     <>
@@ -26,7 +48,7 @@ export default function LoginScreen({ navigation }) {
                 placeholder="Password"
                 secureTextEntry={true}
                 textContentType="password" />
-              <Pressable style={styles.loginButton}>
+              <Pressable style={styles.loginButton} onPress={handleLogin}>
                 <Text style={{ color: "#FFFFFF", fontSize: 17 }}>Masuk</Text>
               </Pressable>
               <Text style={{ fontSize: 17, marginTop: 20, textDecorationLine: "underline" }}

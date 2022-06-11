@@ -1,31 +1,28 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { StyleSheet, Text, Image, FlatList, TouchableOpacity, ActivityIndicator, View } from "react-native"
 import { Searchbar } from "react-native-paper"
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../firebase";
 
 export default function ShopScreen({ navigation }) {
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [data, setData] = useState([])
 
-  const data = [
-    {
-      id: 1,
-      name: "Baju Gemes",
-      imageUrl: "https://im.uniqlo.com/global-cms/spa/res194a8fb124089fd98ae2d8172e500917fr.jpg",
-      price: 149000
-    },
-    {
-      id: 2,
-      name: "Baju Gemes",
-      imageUrl: "https://image.uniqlo.com/UQ/ST3/id/imagesgoods/452289/item/idgoods_01_452289.jpg?width=1600&impolicy=quality_75",
-      price: 149000
-    },
-    {
-      id: 3,
-      name: "Baju Gemes",
-      imageUrl: "https://image.uniqlo.com/UQ/ST3/id/imagesgoods/448970/item/idgoods_09_448970.jpg?width=1600&impolicy=quality_75",
-      price: 399000
-    }
-  ]
+  async function getData() {
+    const querySnapshot = await getDocs(collection(db, "products"));
+
+    let tempData = []
+    querySnapshot.forEach((doc) => {
+      tempData.push(doc.data())
+    });
+    setData(tempData)
+  }
+
+  useEffect(() => {
+    getData()
+  }, [])
+
   return (
     <>
       <Searchbar
@@ -42,7 +39,7 @@ export default function ShopScreen({ navigation }) {
           <TouchableOpacity
             onPress={() => {
               navigation.navigate('Detail', {
-                id: item.id
+                fid: item.fid,
               })
             }}
             style={styles.cardContent} >

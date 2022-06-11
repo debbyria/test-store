@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { ScrollView, StyleSheet, View, Text, Image, Dimensions, ImageBackground, TextInput, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { auth } from "../firebase"
+import { createUserWithEmailAndPassword } from "firebase/auth";
 
 const windowWidth = Dimensions.get('window').width
 const windowHeight = Dimensions.get('window').height
@@ -10,6 +12,17 @@ export default function RegisterScreen({ navigation }) {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [phoneNumber, setPhoneNumber] = useState("")
+
+  const handleSignUp = () => {
+    createUserWithEmailAndPassword(auth, email, password)
+      .then(userCredentials => {
+        const user = userCredentials.user
+        alert("Register Succeed")
+        navigation.navigate("Login")
+        console.log(user.email)
+      })
+      .catch(error => alert(error.message))
+  }
 
   return (
     <>
@@ -33,13 +46,14 @@ export default function RegisterScreen({ navigation }) {
                 placeholder="Nomor HP"
                 keyboardType="phone-pad"
                 textContentType="telephoneNumber" />
-              <Pressable style={styles.loginButton}>
+              <Pressable style={styles.loginButton}
+                onPress={handleSignUp}>
                 <Text style={{ color: "#FFFFFF", fontSize: 17 }}>Buat Akun</Text>
               </Pressable>
             </View>
           </ImageBackground>
         </View>
-      </ScrollView>
+      </ScrollView >
     </>
   )
 }

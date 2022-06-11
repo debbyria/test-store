@@ -18,9 +18,9 @@ export default function App() {
     <Provider store={store}>
       <NavigationContainer>
         <Stack.Navigator>
-          <Stack.Screen name='Shop' component={ShopScreen} />
           <Stack.Screen name='Login' component={LoginScreen} />
           <Stack.Screen name='Register' component={RegisterScreen} />
+          <Stack.Screen name='Shop' component={ShopScreen} />
           <Stack.Screen name='Detail' component={DetailScreen} />
           <Stack.Screen name='Cart' component={CartScreen} />
 

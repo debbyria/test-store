@@ -1,26 +1,61 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Text, View, ActivityIndicator, ScrollView, Image, Dimensions, StyleSheet } from "react-native"
 import { RadioButton, Button, Provider, Modal, Portal } from 'react-native-paper';
+import { collection, getDocs, addDoc } from "firebase/firestore";
+import { db, auth } from "../firebase";
+
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
 
 export default function DetailScreen({ navigation, route }) {
   const [gender, setGender] = useState("pria")
   const [size, setSize] = useState("small")
+  const [data, setData] = useState("")
 
   // MODAL
   const [visible, setVisible] = useState(false);
 
   const showModal = () => setVisible(true);
   const hideModal = () => setVisible(false);
+  const fid = route.params.fid
 
+  async function getDetailData() {
+    const querySnapshot = await getDocs(collection(db, "products"));
 
-  const data = {
-    id: 1,
-    name: "Baju Gemes",
-    imageUrl: "https://im.uniqlo.com/global-cms/spa/res194a8fb124089fd98ae2d8172e500917fr.jpg",
-    price: 149000
+    querySnapshot.forEach((doc) => {
+      if (doc.data().fid === fid) {
+        setData(doc.data())
+      }
+    });
   }
+
+  async function addToDb() {
+    try {
+      let email
+      await auth.onAuthStateChanged(user => {
+        email = user.email
+      })
+
+      const docRef = await addDoc(collection(db, "carts"), {
+        email,
+        gender,
+        size,
+        name: data.name,
+        imageUrl: data.imageUrl,
+        price: data.price
+      });
+      console.log("Document written with ID: ", docRef.id);
+
+      showModal()
+
+    } catch (error) {
+      console.error("Error adding document: ", error);
+    }
+  }
+
+  useEffect(() => {
+    getDetailData()
+  }, [])
 
   return (
     <>
@@ -40,7 +75,7 @@ export default function DetailScreen({ navigation, route }) {
         <View style={styles.optionContainer}>
           <Text style={styles.selectTitle}>Pilih jenis kelamin</Text>
 
-          <RadioButton.Group onValueChange={newValue => setGender(newValue)} gender={gender}>
+          <RadioButton.Group onValueChange={newValue => setGender(newValue)} value={gender}>
             <View style={{ flexDirection: "row", alignItems: "center" }}>
               <RadioButton value="pria" />
               <Text style={{ fontSize: 16 }}>Pria</Text>
@@ -54,22 +89,22 @@ export default function DetailScreen({ navigation, route }) {
         {/* CHOOSE SIZE */}
         <View style={styles.optionContainer}>
           <Text style={styles.selectTitle}>Pilih ukuran</Text>
-          <RadioButton.Group onValueChange={newValue => setGender(newValue)} gender={gender}>
+          <RadioButton.Group onValueChange={newValue => setSize(newValue)} value={size}>
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }} >
               <View style={{ flexDirection: "row", alignItems: "center" }}>
-                <RadioButton value="small" />
+                <RadioButton value="S" />
                 <Text style={{ fontSize: 16 }}>S</Text>
               </View>
               <View style={{ flexDirection: "row", alignItems: "center" }}>
-                <RadioButton value="medium" />
+                <RadioButton value="M" />
                 <Text style={{ fontSize: 16 }}>M</Text>
               </View>
               <View style={{ flexDirection: "row", alignItems: "center" }}>
-                <RadioButton value="large" />
+                <RadioButton value="L" />
                 <Text style={{ fontSize: 16 }}>L</Text>
               </View>
               <View style={{ flexDirection: "row", alignItems: "center" }}>
-                <RadioButton value="xtraLarge" />
+                <RadioButton value="XL" />
                 <Text style={{ fontSize: 16 }}>XL</Text>
               </View>
             </View>
@@ -77,7 +112,7 @@ export default function DetailScreen({ navigation, route }) {
         </View>
         <View style={styles.horizontalLine}></View>
         <View style={styles.buttonContainer}>
-          <Button icon="plus" mode="contained" color="#3A5BA0" style={{ width: "90%" }} onPress={showModal}>Tambah Ke Keranjang</Button>
+          <Button icon="plus" mode="contained" color="#3A5BA0" style={{ width: "90%" }} onPress={addToDb}>Tambah Ke Keranjang</Button>
         </View>
       </ScrollView >
 
